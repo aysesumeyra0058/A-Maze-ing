@@ -1,4 +1,30 @@
+import sys
+
+
+class MazeConfig:
+    """Store validated maze configuration values."""
+
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        entry: tuple[int, int],
+        exit_position: tuple[int, int],
+        perfect: bool,
+        seed: int | None,
+        output_file: str,
+    ) -> None:
+        self.width = width
+        self.height = height
+        self.entry = entry
+        self.exit_position = exit_position
+        self.perfect = perfect
+        self.seed = seed
+        self.output_file = output_file
+
+
 def read_config(path: str) -> dict[str, str]:
+    """Read configuration values as strings."""
     settings: dict[str, str] = {}
 
     # Define allowed and required keys
@@ -12,7 +38,7 @@ def read_config(path: str) -> dict[str, str]:
         "OUTPUT_FILE", "PERFECT",
     }
 
-    # Read config lines
+    # Read config lines and close the file automatically
     with open(path, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
@@ -51,54 +77,100 @@ def read_config(path: str) -> dict[str, str]:
             # Store the valid key-value pair
             settings[key] = value
 
-        # Check for missing required keys
-        for key in required_keys:
-            if key not in settings:
-                raise ValueError(f"Missing required config key: '{key}'")
+    # Check required keys after reading the entire file
+    for key in required_keys:
+        if key not in settings:
+            raise ValueError(f"Missing required config key: '{key}'")
 
     return settings
 
 
+def parse_config(path: str) -> MazeConfig:
+    """Read, convert and validate maze configuration."""
+
+    # Read raw config values
+    config = read_config(path)
+
+    # Convert and validate maze dimensions
+    width = int(config["WIDTH"])
+    height = int(config["HEIGHT"])
+
+    if width <= 0:
+        raise ValueError("WIDTH must be greater than 0")
+
+    if height <= 0:
+        raise ValueError("HEIGHT must be greater than 0")
+
+    # Parse and validate entry coordinates
+    entry_x_str, entry_y_str = config["ENTRY"].split(",")
+    entry = (int(entry_x_str), int(entry_y_str))
+
+    if not (0 <= entry[0] < width and 0 <= entry[1] < height):
+        raise ValueError("ENTRY must be inside the maze")
+
+    # Parse and validate exit coordinates
+    exit_x_str, exit_y_str = config["EXIT"].split(",")
+    exit_position = (int(exit_x_str), int(exit_y_str))
+
+    if not (
+        0 <= exit_position[0] < width
+        and 0 <= exit_position[1] < height
+    ):
+        raise ValueError("EXIT must be inside the maze")
+
+    # Ensure entry and exit are different
+    if entry == exit_position:
+        raise ValueError("ENTRY and EXIT must be different")
+
+    # Convert and validate PERFECT
+    perfect_str = config["PERFECT"]
+
+    if perfect_str == "True":
+        perfect = True
+    elif perfect_str == "False":
+        perfect = False
+    else:
+        raise ValueError("PERFECT must be True or False")
+
+    # Parse optional seed
+    seed: int | None = None
+
+    if "SEED" in config:
+        seed = int(config["SEED"])
+
+    # Read output file path
+    output_file = config["OUTPUT_FILE"]
+
+    # Store converted values in a configuration object
+    return MazeConfig(
+        width=width,
+        height=height,
+        entry=entry,
+        exit_position=exit_position,
+        perfect=perfect,
+        seed=seed,
+        output_file=output_file,
+    )
+
+
 if __name__ == "__main__":
     try:
-        # Read raw config values
-        config = read_config("config.txt")
+        # Require exactly one config file argument
+        if len(sys.argv) != 2:
+            raise ValueError(
+                "Usage: python3 config_parser.py <config_file>"
+            )
 
-        # Convert and validate maze dimensions
-        width = int(config["WIDTH"])
-        height = int(config["HEIGHT"])
+        # Parse the config file provided by the user
+        config = parse_config(sys.argv[1])
 
-        if width <= 0:
-            raise ValueError("WIDTH must be greater than 0")
+        print(f"Width: {config.width}, height: {config.height}")
+        print(f"Entry: {config.entry}")
+        print(f"Exit: {config.exit_position}")
+        print(f"Perfect: {config.perfect}")
+        print(f"Seed: {config.seed}")
+        print(f"Output file: {config.output_file}")
 
-        if height <= 0:
-            raise ValueError("HEIGHT must be greater than 0")
-
-        print(f"Width: {width}, height: {height}")
-
-        # Parse and validate entry coordinates
-        entry_x_str, entry_y_str = config["ENTRY"].split(",")
-        entry = (int(entry_x_str), int(entry_y_str))
-
-        if not (0 <= entry[0] < width and 0 <= entry[1] < height):
-            raise ValueError("ENTRY must be inside the maze")
-
-        # Parse and validate exit coordinates
-        exit_x_str, exit_y_str = config["EXIT"].split(",")
-        exit_position = (int(exit_x_str), int(exit_y_str))
-
-        if not (0 <= exit_position[0] < width and 0 <= exit_position[1] < height):
-            raise ValueError("EXIT must be inside the maze")
-
-        # Ensure entry and exit are different
-        if entry == exit_position:
-            raise ValueError("ENTRY and EXIT must be different")
-
-        # Display validated coordinates
-        print(f"Exit: {exit_position}")
-        print(f"Entry: {entry}")
-
-        # Convert and validate PERFECT
-
-    except ValueError as error:
+    # Handle invalid config values and file access errors -> OSError
+    except (ValueError, OSError) as error:
         print(f"Error: {error}")
