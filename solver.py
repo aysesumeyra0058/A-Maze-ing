@@ -57,6 +57,34 @@ def bfs(
     return path
 
 
+# [(0, 0), (1, 0), (1, 1)] → "ES"
+# Convert the path found by BFS into N, E, S, W direction letters.
+def path_to_directions(path: list[tuple[int, int]]) -> str:
+    """Convert a coordinate path into compass directions."""
+    directions = ""
+
+    for i in range(1, len(path)):
+        previous_x, previous_y = path[i - 1]
+        current_x, current_y = path[i]
+
+        dx = current_x - previous_x
+        dy = current_y - previous_y
+
+        # Identify the direction between consecutive cells
+        if dx == 1 and dy == 0:
+            directions += "E"
+        elif dx == -1 and dy == 0:
+            directions += "W"
+        elif dx == 0 and dy == 1:
+            directions += "S"
+        elif dx == 0 and dy == -1:
+            directions += "N"
+        else:
+            raise ValueError("Path contains a non-adjacent move")
+
+    return directions
+
+
 if __name__ == "__main__":
     neighbors = {
         (0, 0): [(1, 0), (0, 1)],
@@ -77,11 +105,3 @@ if __name__ == "__main__":
         print("Çıkışa ulaşılamadı.")
     else:
         print(f"Çözüm yolu: {result}")
-"""
-* BFS'NİN TEMEL SÜRÜMÜ TAMAMLANDI 
-** Üretici geldiğinde aramayı yeniden yazmayacağız; yalnızca:
-*** bfs(maze.neighbors, entry, exit_position) şeklinde bağlayacağız. 
-**** Duvar, sınır ve “42” kontrollerini ortak neighbors() metodu sağlayacak.
-***** Şu anki test fonksiyonun yalnızca elle hazırladığımız komşu listesini döndürüyor.
-
-"""
