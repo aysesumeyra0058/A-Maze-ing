@@ -1,7 +1,7 @@
 import sys
 
 from config_parser import parse_config
-from mazegen import MazeGenerator 
+from mazegen import MazeGenerator
 # > MazeGenerator -> lab create class
 from solver import bfs, path_to_directions
 from output_writer import write_maze_output
@@ -42,7 +42,7 @@ if __name__ == "__main__":
             # Convert the solution path into direction letters
             directions = path_to_directions(path)
             print(f"Directions: {directions}")
-                        # Save the maze and its solution to the output file
+            # Save the maze and its solution to the output file
             write_maze_output(
                 output_file=config.output_file,
                 grid=maze.get_grid(),
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             print(f"Maze saved to: {config.output_file}")
             # Display the maze and keep the 42 pattern filled
             # Display the maze with its entry and exit
-                        # Keep the current solution visibility
+            # Keep the current solution visibility
 
             show_solution = True
             # Available wall colors: white, green, cyan, magenta

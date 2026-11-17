@@ -59,7 +59,7 @@ class MazeBuilder:
 
     def _place_42_pattern(self) -> None:
         """Uygun bir 42 yerleşimi seçer veya açıklayıcı uyarı verir."""
-        
+
         # 1. Adım: Olası tüm sol-üst köşe koordinatlarını (ox, oy) toplayalım
 
         # !!!!! burdan değişiklik başladı !!!
@@ -87,78 +87,101 @@ class MazeBuilder:
 
         # !!! buraya kadar olan kısım değiştirildi !!
 
-        # 2. Adım: Pozisyonları sıralayacağız (Lambda kullanmadan, klasik döngüyle veya net bir mantıkla)
-        # Önce merkeze en yakın olanları ve labirentin kenar taşmalarını engelleyenleri seçmek istiyoruz.
-        # Bunun için Python'ın klasik sorted fonksiyonuna düz bir normal fonksiyon (helper) verelim:
+        # 2. Adım: Pozisyonları sıralayacağız (Lambda kullanmadan, klasik
+        # döngüyle veya net bir mantıkla)
+        # Önce merkeze en yakın olanları ve labirentin kenar taşmalarını
+        # engelleyenleri seçmek istiyoruz.
+        # Bunun için Python'ın klasik sorted fonksiyonuna düz bir normal
+        # fonksiyon (helper) verelim:
         def position_score(pos):
             ox, oy = pos
-            # Kenarda mı kalıyor yoksa içeride mi? (0: içeride ve ideal, 1: kenara çok yakın/taşma riski)
-            is_edge_risk = not (0 < ox and ox + 7 < self.width and 0 < oy and oy + 5 < self.height)
-            
+            # Kenarda mı kalıyor yoksa içeride mi? (0: içeride ve ideal, 1:
+            # kenara çok yakın/taşma riski)
+            is_edge_risk = not (0 < ox and ox + 7 <
+                                self.width and 0 < oy and oy + 5 < self.height)
+
             # Merkeze olan uzaklık hesaplaması
-            center_distance = abs(2 * ox + 7 - self.width) + abs(2 * oy + 5 - self.height)
-            
+            center_distance = abs(2 * ox + 7 - self.width) + \
+                abs(2 * oy + 5 - self.height)
+
             return (is_edge_risk, center_distance, oy, ox)
 
         positions.sort(key=position_score)
-        
+
         # 3. Adım: Pozisyonları tek tek deneme sırasına koyalım
         fits_without_reservations = False
-        
+
         for ox, oy in positions:
-            # 42 logosunun '1' olan piksellerini hücre kümesine dönüştürelim (enumerate yerine satır-sütun sayacıyla)
+            # 42 logosunun '1' olan piksellerini hücre kümesine dönüştürelim
+            # (enumerate yerine satır-sütun sayacıyla)
             cells = set()
             for row_index, row in enumerate(self.LOGO):
                 for col_index, value in enumerate(row):
                     if value == "1":
                         cells.add((ox + col_index, oy + row_index))
-            
-            # Bu hücreleri engellediğimizde labirentin geri kalanı hâlâ bağlanabiliyor mu?
+
+            # Bu hücreleri engellediğimizde labirentin geri kalanı hâlâ
+            # bağlanabiliyor mu?
             if self._connected_without(cells):
                 fits_without_reservations = True
-                # Eğer ayrılmış (reserved) özel hücrelerle çakışmıyorsa burası mükemmeldir!
+                # Eğer ayrılmış (reserved) özel hücrelerle çakışmıyorsa burası
+                # mükemmeldir!
                 if not cells.intersection(self._reserved):
                     self.blocked_cells = cells
                     return
-                    
+
         if fits_without_reservations:
-            raise ValueError("42 deseni ayrılmış giriş, çıkış veya merkez hücreleri korunarak yerleştirilemiyor.")
-            
-        print("Uyarı: 42 deseni bu boyutta bağlantı korunarak yerleştirilemedi; desen atlandı.")
+            raise ValueError((
+                '42 deseni ayrılmış giriş, çıkış veya merkez '
+                'hücreleri korunarak yerleştirilemiyor.'
+            ))
+
+        print((
+            'Uyarı: 42 deseni bu boyutta bağlantı korunarak '
+            'yerleştirilemedi; desen atlandı.'
+        ))
 
     def _knock_down_wall(self, a: Cell, b: Cell) -> None:
         """İki komşu hücrenin ortak duvarını iki taraftan açar."""
         x, y = a
         nx, ny = b
-        
+
         for neighbor, bit in self._adjacent(a):
             if neighbor == b:
                 # 1. Kendi hücremizin duvarını açalım
                 existing_walls = self.grid[y][x]
                 self.grid[y][x] = existing_walls & ~bit
 
-                if bit == self.MASK_NORTH:       # Eğer bizim açtığımız yön Kuzeyse (1)
-                    opposite_bit = self.MASK_SOUTH  # Karşı komşunun açılacak duvarı Güney'dir (4)
-                elif bit == self.MASK_SOUTH:     # Eğer bizim açtığımız yön Güneyse (4)
-                    opposite_bit = self.MASK_NORTH  # Karşı komşunun açılacak duvarı Kuzey'dir (1)
-                elif bit == self.MASK_EAST:      # Eğer bizim açtığımız yön Doğuyorsa (2)
-                    opposite_bit = self.MASK_WEST   # Karşı komşunun açılacak duvarı Batı'dır (8)
-                else:                            # Durum geriye bir tek Batı kalıyor (8)
-                    opposite_bit = self.MASK_EAST   # Karşı komşunun açılacak duvarı Doğu'dur (2)
-                                
-                
+                # Eğer bizim açtığımız yön Kuzeyse (1)
+                if bit == self.MASK_NORTH:
+                    # Karşı komşunun açılacak duvarı Güney'dir (4)
+                    opposite_bit = self.MASK_SOUTH
+                # Eğer bizim açtığımız yön Güneyse (4)
+                elif bit == self.MASK_SOUTH:
+                    # Karşı komşunun açılacak duvarı Kuzey'dir (1)
+                    opposite_bit = self.MASK_NORTH
+                # Eğer bizim açtığımız yön Doğuyorsa (2)
+                elif bit == self.MASK_EAST:
+                    # Karşı komşunun açılacak duvarı Batı'dır (8)
+                    opposite_bit = self.MASK_WEST
+                # Durum geriye bir tek Batı kalıyor (8)
+                else:
+                    # Karşı komşunun açılacak duvarı Doğu'dur (2)
+                    opposite_bit = self.MASK_EAST
+
                 # 3. Komşu hücrenin o duvarını da açalım
                 neighbor_walls = self.grid[ny][nx]
                 self.grid[ny][nx] = neighbor_walls & ~opposite_bit
-                
+
                 return
-                
+
         raise ValueError("Duvar yalnızca komşu hücreler arasında açılabilir.")
-                
+
     def _generate_perfect_maze(self) -> None:
         """İteratif rastgele DFS ile bağlı ve döngüsüz bir yapı üretir."""
-        
-        # 1. Adım: Başlangıç hücresini rastgele seç (engellenmiş 42 hücreleri hariç)
+
+        # 1. Adım: Başlangıç hücresini rastgele seç (engellenmiş 42 hücreleri
+        # hariç)
         start = None
         for y in range(self.height):
             for x in range(self.width):
@@ -167,16 +190,21 @@ class MazeBuilder:
                     break
             if start is not None:
                 break
-        
+
         # 2. Adım: Ziyaret edilenler kümesini ve Stacki oluştur
-        visited = {start} | self.blocked_cells  # 42 hücrelerini de ziyaret edilmiş kabul ediyoruz ki duvarlala oynanmasın duvar olarak kalabilsinler
-        stack = [start]                         # Adımlarımızı kaydettiğimiz stack
-        
+        # 42 hücrelerini de ziyaret edilmiş kabul ediyoruz ki duvarlala
+        # oynanmasın duvar olarak kalabilsinler
+        visited = {start} | self.blocked_cells
+        # Adımlarımızı kaydettiğimiz stack
+        stack = [start]
+
         # 3. Adım: Stack boşalana kadar labirenti örmeye devam et
         while stack:
-            current = stack[-1]  # Şu an üzerinde bulunduğumuz hücre (Stack'in en üstü)
-            
-            # Etrafımızdaki komşulardan henüz ZİYARET EDİLMEMİŞ olanları bulalım
+            # Şu an üzerinde bulunduğumuz hücre (Stack'in en üstü)
+            current = stack[-1]
+
+            # Etrafımızdaki komşulardan henüz ZİYARET EDİLMEMİŞ olanları
+            # bulalım
             candidates = []
             for cell, bit_value in self._adjacent(current):
                 if cell not in visited:
@@ -184,18 +212,22 @@ class MazeBuilder:
             if candidates:  # Eğer gidilmemiş en az bir komşu varsa
                 # Rastgele bir komşu seç
                 neighbor = self._rng.choice(candidates)
-                
-                # Aradaki duvarı yık (hem bizim hücrenin hem komşunun duvarı açılır)
+
+                # Aradaki duvarı yık (hem bizim hücrenin hem komşunun duvarı
+                # açılır)
                 self._knock_down_wall(current, neighbor)
-                
+
                 # Komşuyu ziyaret edildi olarak işaretle
                 visited.add(neighbor)
-                
+
                 # Stacke ekle (artık yeni bulunduğumuz yer burası oldu)
                 stack.append(neighbor)
-                
-            else:  # Eğer etrafta gidecek hiç ham yol kalmadıysa (Çıkmaz sokak!):
-                stack.pop()  # Son adımı yığından çıkararak bir adım geriye (önceki hücreye) sar!
+
+            # Eğer etrafta gidecek hiç ham yol kalmadıysa (Çıkmaz sokak!):
+            else:
+                # Son adımı yığından çıkararak bir adım geriye (önceki hücreye)
+                # sar!
+                stack.pop()
 
     def _would_open_square(self, a: Cell, b: Cell) -> bool:
         """Yeni duvarın açılmasıyla duvarsız 3x3 alan oluşmasını denetle."""

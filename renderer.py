@@ -6,6 +6,7 @@ PATTERN = "P"
 PATTERN_COLOR = "\033[34m"
 RESET = "\033[0m"
 
+
 def render_maze(
     grid: list[list[int]],
     blocked_cells: set[tuple[int, int]],
@@ -20,7 +21,7 @@ def render_maze(
     # Get the maze dimensions
     height = len(grid)
     width = len(grid[0])
-        # Calculate the drawing dimensions
+    # Calculate the drawing dimensions
     canvas_height = height * 2 + 1
     canvas_width = width * 2 + 1
 
