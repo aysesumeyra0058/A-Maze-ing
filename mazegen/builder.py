@@ -191,6 +191,9 @@ class MazeBuilder:
             if start is not None:
                 break
 
+        if start is None:
+            raise ValueError("No available starting cell for maze generation")
+
         # 2. Adım: Ziyaret edilenler kümesini ve Stacki oluştur
         # 42 hücrelerini de ziyaret edilmiş kabul ediyoruz ki duvarlala
         # oynanmasın duvar olarak kalabilsinler
