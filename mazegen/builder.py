@@ -61,14 +61,32 @@ class MazeBuilder:
         """Uygun bir 42 yerleşimi seçer veya açıklayıcı uyarı verir."""
         
         # 1. Adım: Olası tüm sol-üst köşe koordinatlarını (ox, oy) toplayalım
-        positions = []
-        max_y = max(0, self.height - 4)
-        max_x = max(0, self.width - 6)
-        
+
+        # !!!!! burdan değişiklik başladı !!!
+
+        # Get the dimensions of the 42 pattern
+        pattern_height = len(self.LOGO)
+        pattern_width = len(self.LOGO[0])
+
+        # Skip the pattern if the maze is too small
+        if (
+            self.width < pattern_width
+            or self.height < pattern_height
+        ):
+            print("Warning: maze too small for the 42 pattern; skipped.")
+            return
+
+        # Collect starting positions where the entire pattern fits
+        positions: list[Cell] = []
+        max_y = self.height - pattern_height
+        max_x = self.width - pattern_width
+
         for oy in range(max_y + 1):
             for ox in range(max_x + 1):
                 positions.append((ox, oy))
-        
+
+        # !!! buraya kadar olan kısım değiştirildi !!
+
         # 2. Adım: Pozisyonları sıralayacağız (Lambda kullanmadan, klasik döngüyle veya net bir mantıkla)
         # Önce merkeze en yakın olanları ve labirentin kenar taşmalarını engelleyenleri seçmek istiyoruz.
         # Bunun için Python'ın klasik sorted fonksiyonuna düz bir normal fonksiyon (helper) verelim:
