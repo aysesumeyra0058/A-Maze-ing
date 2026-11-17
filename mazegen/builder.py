@@ -59,27 +59,54 @@ class MazeBuilder:
 
     def _place_42_pattern(self) -> None:
         """Uygun bir 42 yerleşimi seçer veya açıklayıcı uyarı verir."""
-        positions = [(x, y) for y in range(max(0, self.height - 4))
-                     for x in range(max(0, self.width - 6))]
-        positions.sort(key=lambda p: (
-            not (0 < p[0] and p[0] + 7 < self.width
-                 and 0 < p[1] and p[1] + 5 < self.height),
-            abs(2 * p[0] + 7 - self.width)
-            + abs(2 * p[1] + 5 - self.height), p[1], p[0]))
+        
+        # 1. Adım: Olası tüm sol-üst köşe koordinatlarını (ox, oy) toplayalım
+        positions = []
+        max_y = max(0, self.height - 4)
+        max_x = max(0, self.width - 6)
+        
+        for oy in range(max_y + 1):
+            for ox in range(max_x + 1):
+                positions.append((ox, oy))
+        
+        # 2. Adım: Pozisyonları sıralayacağız (Lambda kullanmadan, klasik döngüyle veya net bir mantıkla)
+        # Önce merkeze en yakın olanları ve labirentin kenar taşmalarını engelleyenleri seçmek istiyoruz.
+        # Bunun için Python'ın klasik sorted fonksiyonuna düz bir normal fonksiyon (helper) verelim:
+        def position_score(pos):
+            ox, oy = pos
+            # Kenarda mı kalıyor yoksa içeride mi? (0: içeride ve ideal, 1: kenara çok yakın/taşma riski)
+            is_edge_risk = not (0 < ox and ox + 7 < self.width and 0 < oy and oy + 5 < self.height)
+            
+            # Merkeze olan uzaklık hesaplaması
+            center_distance = abs(2 * ox + 7 - self.width) + abs(2 * oy + 5 - self.height)
+            
+            return (is_edge_risk, center_distance, oy, ox)
+
+        positions.sort(key=position_score)
+        
+        # 3. Adım: Pozisyonları tek tek deneme sırasına koyalım
         fits_without_reservations = False
+        
         for ox, oy in positions:
-            cells = {(ox + x, oy + y) for y, row in enumerate(self.LOGO)
-                     for x, value in enumerate(row) if value == "1"}
+            # 42 logosunun '1' olan piksellerini hücre kümesine dönüştürelim (enumerate yerine satır-sütun sayacıyla)
+            cells = set()
+            for row_index, row in enumerate(self.LOGO):
+                for col_index, value in enumerate(row):
+                    if value == "1":
+                        cells.add((ox + col_index, oy + row_index))
+            
+            # Bu hücreleri engellediğimizde labirentin geri kalanı hâlâ bağlanabiliyor mu?
             if self._connected_without(cells):
                 fits_without_reservations = True
+                # Eğer ayrılmış (reserved) özel hücrelerle çakışmıyorsa burası mükemmeldir!
                 if not cells.intersection(self._reserved):
                     self.blocked_cells = cells
                     return
+                    
         if fits_without_reservations:
-            raise ValueError("42 deseni ayrılmış giriş, çıkış veya merkez "
-                             "hücreleri korunarak yerleştirilemiyor.")
-        print("Uyarı: 42 deseni bu boyutta bağlantı korunarak "
-              "yerleştirilemedi; desen atlandı.")
+            raise ValueError("42 deseni ayrılmış giriş, çıkış veya merkez hücreleri korunarak yerleştirilemiyor.")
+            
+        print("Uyarı: 42 deseni bu boyutta bağlantı korunarak yerleştirilemedi; desen atlandı.")
 
     def _knock_down_wall(self, a: Cell, b: Cell) -> None:
         """İki komşu hücrenin ortak duvarını iki taraftan açar."""
@@ -123,9 +150,9 @@ class MazeBuilder:
             if start is not None:
                 break
         
-        # 2. Adım: Ziyaret edilenler kümesini ve Stack'i (yığını) oluştur
-        visited = {start} | self.blocked_cells  # 42 hücrelerini de ziyaret edilmiş kabul ediyoruz ki duvarları kazılmasın
-        stack = [start]                         # Adımlarımızı kaydettiğimiz yığın
+        # 2. Adım: Ziyaret edilenler kümesini ve Stacki oluştur
+        visited = {start} | self.blocked_cells  # 42 hücrelerini de ziyaret edilmiş kabul ediyoruz ki duvarlala oynanmasın duvar olarak kalabilsinler
+        stack = [start]                         # Adımlarımızı kaydettiğimiz stack
         
         # 3. Adım: Stack boşalana kadar labirenti örmeye devam et
         while stack:
@@ -136,7 +163,7 @@ class MazeBuilder:
             for cell, bit_value in self._adjacent(current):
                 if cell not in visited:
                     candidates.append(cell)
-            if candidates:  # Eğer gidilmemiş en az bir komşu varsa:
+            if candidates:  # Eğer gidilmemiş en az bir komşu varsa
                 # Rastgele bir komşu seç
                 neighbor = self._rng.choice(candidates)
                 
@@ -146,7 +173,7 @@ class MazeBuilder:
                 # Komşuyu ziyaret edildi olarak işaretle
                 visited.add(neighbor)
                 
-                # Stack'e ekle (artık yeni bulunduğumuz yer burası oldu)
+                # Stacke ekle (artık yeni bulunduğumuz yer burası oldu)
                 stack.append(neighbor)
                 
             else:  # Eğer etrafta gidecek hiç ham yol kalmadıysa (Çıkmaz sokak!):

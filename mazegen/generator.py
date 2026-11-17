@@ -6,7 +6,7 @@ from .builder import MazeBuilder
 
 
 class MazeGenerator:
-    """Bir labirent üret; koordinatlar (x, y), ızgara erişimi grid[y][x].
+    """Bir labirent üretiyoruz koordinatlar (x, y), ızgara erişimi grid[y][x].
 
     Config'teki entry ve exit değerleri verilirse 42 bu hücreleri kapatmaz.
     Aynı parametreler ve seed aynı sonucu üretir. Non-perfect modda yeterli
