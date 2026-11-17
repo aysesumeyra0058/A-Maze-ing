@@ -59,6 +59,7 @@ if __name__ == "__main__":
                 blocked_cells=maze.get_blocked_cells(),
                 entry=config.entry,
                 exit_position=config.exit_position,
+                path=path,
             )
 
     # Handle configuration, generation and file access errors
