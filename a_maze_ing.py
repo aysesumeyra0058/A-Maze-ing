@@ -3,6 +3,7 @@ import sys
 from config_parser import parse_config
 from mazegen import MazeGenerator 
 # > MazeGenerator -> lab create class
+from solver import bfs
 
 if __name__ == "__main__":
     try:
@@ -27,6 +28,15 @@ if __name__ == "__main__":
 
         print("Maze generated successfully!")
         print(f"Seed: {maze.get_seed()}")
+        # Find a shortest path through the generated maze
+        path = bfs(maze.neighbors, config.entry, config.exit_position)
+
+        # Display the result
+        if path is None:
+            print("No path found.")
+        else:
+            print(f"Solution path: {path}")
+            print(f"Number of moves: {len(path) - 1}")
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
