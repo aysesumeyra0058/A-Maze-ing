@@ -35,3 +35,7 @@ def render_maze(grid: list[list[int]]) -> None:
             # Open the passage to the south if there is no wall
             if not (cell & 4):
                 canvas[canvas_y + 1][canvas_x] = PASSAGE
+    
+    # Print each drawing row, doubling characters for better proportions
+    for row in canvas:
+        print("".join(character * 2 for character in row))

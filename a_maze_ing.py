@@ -5,6 +5,7 @@ from mazegen import MazeGenerator
 # > MazeGenerator -> lab create class
 from solver import bfs, path_to_directions
 from output_writer import write_maze_output
+from renderer import render_maze
 
 if __name__ == "__main__":
     try:
@@ -51,6 +52,8 @@ if __name__ == "__main__":
             )
 
             print(f"Maze saved to: {config.output_file}")
+            # Display the generated maze
+            render_maze(maze.get_grid())
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
