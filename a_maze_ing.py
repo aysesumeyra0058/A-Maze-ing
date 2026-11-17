@@ -3,7 +3,7 @@ import sys
 from config_parser import parse_config
 from mazegen import MazeGenerator 
 # > MazeGenerator -> lab create class
-from solver import bfs
+from solver import bfs, path_to_directions
 
 if __name__ == "__main__":
     try:
@@ -37,6 +37,9 @@ if __name__ == "__main__":
         else:
             print(f"Solution path: {path}")
             print(f"Number of moves: {len(path) - 1}")
+            # Convert the solution path into direction letters
+            directions = path_to_directions(path)
+            print(f"Directions: {directions}")
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
