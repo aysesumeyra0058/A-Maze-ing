@@ -54,13 +54,34 @@ if __name__ == "__main__":
             print(f"Maze saved to: {config.output_file}")
             # Display the maze and keep the 42 pattern filled
             # Display the maze with its entry and exit
-            render_maze(
-                grid=maze.get_grid(),
-                blocked_cells=maze.get_blocked_cells(),
-                entry=config.entry,
-                exit_position=config.exit_position,
-                path=path,
-            )
+                        # Keep the current solution visibility
+            show_solution = True
+
+            # Display the maze and wait for user commands
+            while True:
+                render_maze(
+                    grid=maze.get_grid(),
+                    blocked_cells=maze.get_blocked_cells(),
+                    entry=config.entry,
+                    exit_position=config.exit_position,
+                    path=path,
+                    show_solution=show_solution,
+                )
+
+                try:
+                    command = input(
+                        "[s] Show/hide solution | [q] Quit: "
+                    ).strip().lower()
+                except (EOFError, KeyboardInterrupt):
+                    print("\nExiting.")
+                    break
+
+                if command == "q":
+                    break
+                elif command == "s":
+                    show_solution = not show_solution
+                else:
+                    print("Unknown command.")
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
