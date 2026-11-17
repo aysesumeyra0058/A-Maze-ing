@@ -12,6 +12,7 @@ def render_maze(
     entry: tuple[int, int],
     exit_position: tuple[int, int],
     path: list[tuple[int, int]],
+    show_solution: bool = True,
 ) -> None:
     """Display the maze in the terminal."""
 
@@ -56,19 +57,21 @@ def render_maze(
             for dx in range(-1, 2):
                 canvas[center_y + dy][center_x + dx] = PATTERN
 
-    # Mark the centers of cells along the solution path
-    for x, y in path:
-        canvas[y * 2 + 1][x * 2 + 1] = "."
+    # Draw the solution only when visibility is enabled
+    if show_solution:
+        # Mark the centers of cells along the solution path
+        for x, y in path:
+            canvas[y * 2 + 1][x * 2 + 1] = "."
 
-    # Connect consecutive solution cells through their shared passage
-    for i in range(1, len(path)):
-        previous_x, previous_y = path[i - 1]
-        current_x, current_y = path[i]
+        # Connect consecutive solution cells through their shared passage
+        for i in range(1, len(path)):
+            previous_x, previous_y = path[i - 1]
+            current_x, current_y = path[i]
 
-        passage_x = previous_x + current_x + 1
-        passage_y = previous_y + current_y + 1
+            passage_x = previous_x + current_x + 1
+            passage_y = previous_y + current_y + 1
 
-        canvas[passage_y][passage_x] = "."
+            canvas[passage_y][passage_x] = "."
 
     # Mark the entry and exit at their cell centers
     entry_x, entry_y = entry
