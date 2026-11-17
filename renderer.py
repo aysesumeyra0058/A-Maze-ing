@@ -25,3 +25,13 @@ def render_maze(grid: list[list[int]]) -> None:
             canvas_x = x * 2 + 1
 
             canvas[canvas_y][canvas_x] = PASSAGE
+            # Read the wall information for this cell
+            cell = grid[y][x]
+
+            # Open the passage to the east if there is no wall
+            if not (cell & 2):
+                canvas[canvas_y][canvas_x + 1] = PASSAGE
+
+            # Open the passage to the south if there is no wall
+            if not (cell & 4):
+                canvas[canvas_y + 1][canvas_x] = PASSAGE
