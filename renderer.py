@@ -9,6 +9,8 @@ RESET = "\033[0m"
 def render_maze(
     grid: list[list[int]],
     blocked_cells: set[tuple[int, int]],
+    entry: tuple[int, int],
+    exit_position: tuple[int, int],
 ) -> None:
     """Display the maze in the terminal."""
 
@@ -52,6 +54,13 @@ def render_maze(
         for dy in range(-1, 2):
             for dx in range(-1, 2):
                 canvas[center_y + dy][center_x + dx] = PATTERN
+
+    # Mark the entry and exit at their cell centers
+    entry_x, entry_y = entry
+    exit_x, exit_y = exit_position
+
+    canvas[entry_y * 2 + 1][entry_x * 2 + 1] = "S"
+    canvas[exit_y * 2 + 1][exit_x * 2 + 1] = "E"
 
     # Display the 42 pattern in blue
     for row in canvas:
