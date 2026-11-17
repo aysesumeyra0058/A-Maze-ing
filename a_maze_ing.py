@@ -52,8 +52,11 @@ if __name__ == "__main__":
             )
 
             print(f"Maze saved to: {config.output_file}")
-            # Display the generated maze
-            render_maze(maze.get_grid())
+            # Display the maze and keep the 42 pattern filled
+            render_maze(
+                maze.get_grid(),
+                maze.get_blocked_cells(),
+            )
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:

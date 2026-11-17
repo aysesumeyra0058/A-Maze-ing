@@ -3,7 +3,10 @@
 WALL = "█"
 PASSAGE = " "
 
-def render_maze(grid: list[list[int]]) -> None:
+def render_maze(
+    grid: list[list[int]],
+    blocked_cells: set[tuple[int, int]],
+) -> None:
     """Display the maze in the terminal."""
 
     # Get the maze dimensions
@@ -24,7 +27,9 @@ def render_maze(grid: list[list[int]]) -> None:
             canvas_y = y * 2 + 1
             canvas_x = x * 2 + 1
 
-            canvas[canvas_y][canvas_x] = PASSAGE
+            # Keep the cells forming the 42 pattern filled with walls
+            if (x, y) not in blocked_cells:
+                canvas[canvas_y][canvas_x] = PASSAGE
             # Read the wall information for this cell
             cell = grid[y][x]
 
