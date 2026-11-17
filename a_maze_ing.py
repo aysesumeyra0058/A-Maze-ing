@@ -81,7 +81,8 @@ if __name__ == "__main__":
                 try:
                     command = input(
                         "[s] Show/hide solution | "
-                        "[c] Change wall color | [q] Quit: "
+                        "[c] Change wall color | "
+                        "[r] Regenerate | [q] Quit: "
                     ).strip().lower()
                 except (EOFError, KeyboardInterrupt):
                     print("\nExiting.")
@@ -93,6 +94,52 @@ if __name__ == "__main__":
                     show_solution = not show_solution
                 elif command == "c":
                     color_index = (color_index + 1) % len(wall_colors)
+                elif command == "r":
+                    try:
+                        # Generate a new maze with a fresh random seed
+                        new_maze = MazeGenerator(
+                            width=config.width,
+                            height=config.height,
+                            entry=config.entry,
+                            exit=config.exit_position,
+                            perfect=config.perfect,
+                            seed=None,
+                        )
+
+                        # Find a shortest path through the new maze
+                        new_path = bfs(
+                            new_maze.neighbors,
+                            config.entry,
+                            config.exit_position,
+                        )
+
+                        if new_path is None:
+                            raise ValueError(
+                                "No path found in the new maze"
+                            )
+
+                        # Save the new maze and its solution
+                        new_directions = path_to_directions(new_path)
+                        write_maze_output(
+                            output_file=config.output_file,
+                            grid=new_maze.get_grid(),
+                            entry=config.entry,
+                            exit_position=config.exit_position,
+                            directions=new_directions,
+                        )
+
+                        # Use the new maze after all steps succeed
+                        maze = new_maze
+                        path = new_path
+                        directions = new_directions
+
+                        print(f"New maze seed: {maze.get_seed()}")
+                        print(
+                            f"Number of moves: {len(path) - 1}"
+                        )
+
+                    except (ValueError, OSError) as error:
+                        print(f"Regeneration failed: {error}")
                 else:
                     print("Unknown command.")
 
