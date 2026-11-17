@@ -83,6 +83,8 @@ def render_maze(
         for character in row:
             if character == PATTERN:
                 output += PATTERN_COLOR + WALL * 2 + RESET
+            elif character in (".", "S", "E"):
+                output += character + " "
             else:
                 output += character * 2
         print(output)
