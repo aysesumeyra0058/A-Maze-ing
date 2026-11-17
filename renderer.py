@@ -2,6 +2,9 @@
 
 WALL = "█"
 PASSAGE = " "
+PATTERN = "P"
+PATTERN_COLOR = "\033[34m"
+RESET = "\033[0m"
 
 def render_maze(
     grid: list[list[int]],
@@ -40,7 +43,22 @@ def render_maze(
             # Open the passage to the south if there is no wall
             if not (cell & 4):
                 canvas[canvas_y + 1][canvas_x] = PASSAGE
-    
-    # Print each drawing row, doubling characters for better proportions
+
+    # Mark the centers, walls and corners of the 42 cells
+    for x, y in blocked_cells:
+        center_y = y * 2 + 1
+        center_x = x * 2 + 1
+
+        for dy in range(-1, 2):
+            for dx in range(-1, 2):
+                canvas[center_y + dy][center_x + dx] = PATTERN
+
+    # Display the 42 pattern in blue
     for row in canvas:
-        print("".join(character * 2 for character in row))
+        output = ""
+        for character in row:
+            if character == PATTERN:
+                output += PATTERN_COLOR + WALL * 2 + RESET
+            else:
+                output += character * 2
+        print(output)
