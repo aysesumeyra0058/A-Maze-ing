@@ -4,6 +4,7 @@ from config_parser import parse_config
 from mazegen import MazeGenerator 
 # > MazeGenerator -> lab create class
 from solver import bfs, path_to_directions
+from output_writer import write_maze_output
 
 if __name__ == "__main__":
     try:
@@ -40,6 +41,16 @@ if __name__ == "__main__":
             # Convert the solution path into direction letters
             directions = path_to_directions(path)
             print(f"Directions: {directions}")
+                        # Save the maze and its solution to the output file
+            write_maze_output(
+                output_file=config.output_file,
+                grid=maze.get_grid(),
+                entry=config.entry,
+                exit_position=config.exit_position,
+                directions=directions,
+            )
+
+            print(f"Maze saved to: {config.output_file}")
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
