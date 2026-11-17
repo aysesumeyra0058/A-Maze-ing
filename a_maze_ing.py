@@ -55,7 +55,16 @@ if __name__ == "__main__":
             # Display the maze and keep the 42 pattern filled
             # Display the maze with its entry and exit
                         # Keep the current solution visibility
+
             show_solution = True
+            # Available wall colors: white, green, cyan, magenta
+            wall_colors = [
+                "\033[37m",
+                "\033[32m",
+                "\033[36m",
+                "\033[35m",
+            ]
+            color_index = 0
 
             # Display the maze and wait for user commands
             while True:
@@ -66,11 +75,13 @@ if __name__ == "__main__":
                     exit_position=config.exit_position,
                     path=path,
                     show_solution=show_solution,
+                    wall_color=wall_colors[color_index],
                 )
 
                 try:
                     command = input(
-                        "[s] Show/hide solution | [q] Quit: "
+                        "[s] Show/hide solution | "
+                        "[c] Change wall color | [q] Quit: "
                     ).strip().lower()
                 except (EOFError, KeyboardInterrupt):
                     print("\nExiting.")
@@ -80,6 +91,8 @@ if __name__ == "__main__":
                     break
                 elif command == "s":
                     show_solution = not show_solution
+                elif command == "c":
+                    color_index = (color_index + 1) % len(wall_colors)
                 else:
                     print("Unknown command.")
 

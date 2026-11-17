@@ -13,6 +13,7 @@ def render_maze(
     exit_position: tuple[int, int],
     path: list[tuple[int, int]],
     show_solution: bool = True,
+    wall_color: str = "\033[37m",
 ) -> None:
     """Display the maze in the terminal."""
 
@@ -86,6 +87,8 @@ def render_maze(
         for character in row:
             if character == PATTERN:
                 output += PATTERN_COLOR + WALL * 2 + RESET
+            elif character == WALL:
+                output += wall_color + WALL * 2 + RESET
             elif character in (".", "S", "E"):
                 output += character + " "
             else:
