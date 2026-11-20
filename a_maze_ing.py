@@ -3,7 +3,7 @@ import sys
 from config_parser import parse_config
 from mazegen import MazeGenerator
 # > MazeGenerator -> lab create class
-from solver import bfs, path_to_directions
+from mazegen.solver import bfs, path_to_directions
 from output_writer import write_maze_output
 from renderer import render_maze
 
