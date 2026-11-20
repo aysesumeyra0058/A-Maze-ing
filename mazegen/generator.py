@@ -3,6 +3,7 @@
 import random
 from typing import List, Optional, Set, Tuple
 from .builder import MazeBuilder
+from .solver import bfs
 
 
 class MazeGenerator:
@@ -60,3 +61,23 @@ class MazeGenerator:
     def get_seed(self) -> int:
         """Üretimde kullanılan seed değerini döndürür."""
         return self.seed
+
+    def solve(
+        self,
+        entry: tuple[int, int],
+        exit_position: tuple[int, int],
+    ) -> list[tuple[int, int]] | None:
+        """Return a shortest path between two maze cells."""
+
+        # Reject coordinates outside the maze
+        for x, y in (entry, exit_position):
+            if not (0 <= x < self.width and 0 <= y < self.height):
+                raise ValueError("Solution endpoints must be inside the maze")
+
+        # A solution cannot start or end inside the 42 pattern
+        blocked_cells = self.get_blocked_cells()
+        if entry in blocked_cells or exit_position in blocked_cells:
+            return None
+
+        # Find the path using this maze's accessible neighbors
+        return bfs(self.neighbors, entry, exit_position)

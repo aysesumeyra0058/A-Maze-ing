@@ -3,7 +3,7 @@ import sys
 from config_parser import parse_config
 from mazegen import MazeGenerator
 # > MazeGenerator -> lab create class
-from mazegen.solver import bfs, path_to_directions
+from mazegen.solver import path_to_directions
 from output_writer import write_maze_output
 from renderer import render_maze
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print("Maze generated successfully!")
         print(f"Seed: {maze.get_seed()}")
         # Find a shortest path through the generated maze
-        path = bfs(maze.neighbors, config.entry, config.exit_position)
+        path = maze.solve(config.entry, config.exit_position)
 
         # Display the result
         if path is None:
@@ -107,8 +107,7 @@ if __name__ == "__main__":
                         )
 
                         # Find a shortest path through the new maze
-                        new_path = bfs(
-                            new_maze.neighbors,
+                        new_path = new_maze.solve(
                             config.entry,
                             config.exit_position,
                         )
