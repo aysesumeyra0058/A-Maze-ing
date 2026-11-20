@@ -130,11 +130,13 @@ class MazeBuilder:
                     self.blocked_cells = cells
                     return
 
+        # Skip the pattern if it cannot fit around protected cells
         if fits_without_reservations:
-            raise ValueError((
-                '42 deseni ayrılmış giriş, çıkış veya merkez '
-                'hücreleri korunarak yerleştirilemiyor.'
-            ))
+            print(
+                "Warning: the 42 pattern cannot be placed while "
+                "preserving protected cells; pattern skipped."
+            )
+            return
 
         print((
             'Uyarı: 42 deseni bu boyutta bağlantı korunarak '
