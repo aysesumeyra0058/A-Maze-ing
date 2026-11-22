@@ -13,5 +13,10 @@ build/
 dist/
 *.egg-info/
 
+
+
+.ayse/
+ayse/
+
 # Generated maze output
 maze.txt

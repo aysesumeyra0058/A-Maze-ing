@@ -283,21 +283,48 @@ class MazeBuilder:
                 # sar!
                 stack.pop()
 
-    def _would_open_square(self, a: Cell, b: Cell) -> bool:
-        """Yeni duvarın açılmasıyla duvarsız 3x3 alan oluşmasını denetle."""
-        ax, ay = a
-        bx, by = b
-        for y in range(max(0, max(ay, by) - 2),
-                       min(ay, by, self.height - 3) + 1):
-            for x in range(max(0, max(ax, bx) - 2),
-                           min(ax, bx, self.width - 3) + 1):
-                edges = [((x + i, y + j), (x + i + 1, y + j), 2)
-                         for j in range(3) for i in range(2)]
-                edges += [((x + i, y + j), (x + i, y + j + 1), 4)
-                          for j in range(2) for i in range(3)]
-                if all({u, v} == {a, b} or not (self.grid[u[1]][u[0]] & bit)
-                       for u, v, bit in edges):
+    def _would_open_square(self, cell_a: Cell, cell_b: Cell) -> bool:
+        """Yeni duvar açıldığında 3x3 duvarsız alan oluşacaksa True döndürür."""
+        ax, ay = cell_a
+        bx, by = cell_b
+
+        min_y = max(0, max(ay, by) - 2)
+        max_y = min(ay, by, self.height - 3)
+        min_x = max(0, max(ax, bx) - 2)
+        max_x = min(ax, bx, self.width - 3)
+
+        target_edge = {cell_a, cell_b}
+        east_bit = self.MASK_EAST    # 2
+        south_bit = self.MASK_SOUTH  # 4
+
+        for top_y in range(min_y, max_y + 1):
+            for top_x in range(min_x, max_x + 1):
+                inner_walls = [
+                    # 3x3 blok içindeki 6 yan yana (doğu duvarı) komşuluk
+                    ((top_x + col, top_y + row),
+                     (top_x + col + 1, top_y + row),
+                     east_bit)
+                    for row in range(3)
+                    for col in range(2)
+                ] + [
+                    # 3x3 blok içindeki 6 alt alta (güney duvarı) komşuluk
+                    ((top_x + col, top_y + row),
+                     (top_x + col, top_y + row + 1),
+                     south_bit)
+                    for row in range(2)
+                    for col in range(3)
+                ]
+
+                def wall_will_be_open(wall_spec: Tuple[Cell, Cell, int]) -> bool:
+                    first_cell, second_cell, wall_bit = wall_spec
+                    first_x, first_y = first_cell
+                    is_target_wall = {first_cell, second_cell} == target_edge
+                    is_already_open = not (self.grid[first_y][first_x] & wall_bit)
+                    return is_target_wall or is_already_open
+
+                if all(wall_will_be_open(wall) for wall in inner_walls):
                     return True
+
         return False
 
     def _generate_non_perfect_maze(self) -> None:
