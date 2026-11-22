@@ -2,6 +2,7 @@
 
 import random
 from collections import deque
+from itertools import islice
 from typing import Iterator, List, Optional, Set, Tuple
 
 Cell = Tuple[int, int]
@@ -20,7 +21,7 @@ class MazeBuilder:
         """Ayrılmış hücreleri koruyarak seçilen modda üretim yapar."""
         self.width, self.height, self.perfect = width, height, perfect
         self._rng = rng
-        self.grid: List[List[int]] = [[15] * width for _ in range(height)]
+        self.grid: List[List[int]] = [[15] * width for _  in range(height)]
         self.blocked_cells: Set[Cell] = set()
         self._reserved = set(reserved or ())
         if not perfect:
@@ -28,10 +29,42 @@ class MazeBuilder:
                 (0, 0), (width - 1, 0), (0, height - 1),
                 (width - 1, height - 1), (width // 2, height // 2),
             })
-        self._place_42_pattern()
-        self._generate_perfect_maze()
-        if not perfect:
-            self._generate_non_perfect_maze()
+        rejected = False
+
+        def eligible_patterns() -> Iterator[Set[Cell]]:
+            nonlocal rejected
+            for cells in self._pattern_candidates():
+                if not perfect and self._forced_dead_ends(cells) > 2:
+                    rejected = True
+                    continue
+                yield cells
+
+        candidates = list(islice(eligible_patterns(), 1 if perfect else 32))
+        if not candidates:
+            if rejected:
+                print("Warning: the 42 pattern would exceed the non-perfect "
+                      "maze's two-dead-end limit; pattern skipped.")
+            candidates = [set()]
+
+        if perfect:
+            self.blocked_cells = candidates[0]
+            self._generate_perfect_maze()
+            return
+
+        # Try a bounded number of deterministic attempts for each placement.
+        for cells in candidates:
+            for _ in range(4):
+                self.grid = [[15] * width for _ in range(height)]
+                self.blocked_cells = cells
+                self._generate_perfect_maze()
+                try:
+                    self._generate_non_perfect_maze()
+                    return
+                except ValueError:
+                    continue
+        raise ValueError(
+            "Non-perfect labirent denenen desen yerleşimleri ve "
+            "üretim denemeleriyle oluşturulamadı.")
 
     def _adjacent(self, cell: Cell) -> Iterator[Tuple[Cell, int]]:
         """Sınırlar içindeki komşuları ve yön bitlerini döndürür."""
@@ -57,8 +90,17 @@ class MazeBuilder:
                     queue.append(neighbor)
         return len(seen) == self.width * self.height - len(blocked)
 
-    def _place_42_pattern(self) -> None:
-        """Uygun bir 42 yerleşimi seçer veya açıklayıcı uyarı verir."""
+    def _forced_dead_ends(self, blocked: Set[Cell]) -> int:
+        """Boş alanda yalnızca bir komşusu olan hücreleri sayar."""
+        return sum(
+            sum(neighbor not in blocked for neighbor, _ in self._adjacent(cell)) == 1
+            for y in range(self.height)
+            for x in range(self.width)
+            if (cell := (x, y)) not in blocked
+        )
+
+    def _pattern_candidates(self) -> Iterator[Set[Cell]]:
+        """Uygun 42 yerleşimlerini öncelik sırasıyla döndürür."""
 
         # 1. Adım: Olası tüm sol-üst köşe koordinatlarını (ox, oy) toplayalım
 
@@ -110,6 +152,7 @@ class MazeBuilder:
 
         # 3. Adım: Pozisyonları tek tek deneme sırasına koyalım
         fits_without_reservations = False
+        found = False
 
         for ox, oy in positions:
             # 42 logosunun '1' olan piksellerini hücre kümesine dönüştürelim
@@ -127,8 +170,11 @@ class MazeBuilder:
                 # Eğer ayrılmış (reserved) özel hücrelerle çakışmıyorsa burası
                 # mükemmeldir!
                 if not cells.intersection(self._reserved):
-                    self.blocked_cells = cells
-                    return
+                    found = True
+                    yield cells
+
+        if found:
+            return
 
         # Skip the pattern if it cannot fit around protected cells
         if fits_without_reservations:

@@ -11,7 +11,9 @@ class MazeGenerator:
 
     Config'teki entry ve exit değerleri verilirse 42 bu hücreleri kapatmaz.
     Aynı parametreler ve seed aynı sonucu üretir. Non-perfect modda yeterli
-    Döngü oluşturulamayan veya desenin yerleştirilemediği ayarlar hata verir.
+    Döngü oluşturulamayan ayarlar hata verir; desen yerleştirilemezse
+    veya non-perfect modun çıkmaz sınırıyla uyumsuzsa uyarı verilir ve
+    üretim desensiz sürer.
     """
 
     def __init__(self, width: int, height: int, perfect: bool = False,
