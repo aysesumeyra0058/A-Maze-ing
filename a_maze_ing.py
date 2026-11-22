@@ -144,4 +144,5 @@ if __name__ == "__main__":
 
     # Handle configuration, generation and file access errors
     except (ValueError, OSError) as error:
-        print(f"Error: {error}")
+        print(f"Error: {error}", file=sys.stderr)
+        sys.exit(1)
