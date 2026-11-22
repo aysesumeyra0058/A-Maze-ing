@@ -21,7 +21,7 @@ class MazeBuilder:
         """Ayrılmış hücreleri koruyarak seçilen modda üretim yapar."""
         self.width, self.height, self.perfect = width, height, perfect
         self._rng = rng
-        self.grid: List[List[int]] = [[15] * width for _  in range(height)]
+        self.grid: List[List[int]] = [[15] * width for _ in range(height)]
         self.blocked_cells: Set[Cell] = set()
         self._reserved = set(reserved or ())
         if not perfect:
@@ -93,7 +93,10 @@ class MazeBuilder:
     def _forced_dead_ends(self, blocked: Set[Cell]) -> int:
         """Boş alanda yalnızca bir komşusu olan hücreleri sayar."""
         return sum(
-            sum(neighbor not in blocked for neighbor, _ in self._adjacent(cell)) == 1
+            sum(
+                neighbor not in blocked
+                for neighbor, _ in self._adjacent(cell)
+            ) == 1
             for y in range(self.height)
             for x in range(self.width)
             if (cell := (x, y)) not in blocked
