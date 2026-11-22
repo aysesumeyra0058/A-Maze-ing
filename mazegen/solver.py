@@ -83,25 +83,3 @@ def path_to_directions(path: list[tuple[int, int]]) -> str:
             raise ValueError("Path contains a non-adjacent move")
 
     return directions
-
-
-if __name__ == "__main__":
-    neighbors = {
-        (0, 0): [(1, 0), (0, 1)],
-        (1, 0): [(0, 0), (1, 1)],
-        (0, 1): [(0, 0)],
-        (1, 1): [(1, 0)],
-    }
-
-    def get_neighbors(
-        cell: tuple[int, int],
-    ) -> list[tuple[int, int]]:
-        """Return the neighbors of a cell."""
-        return neighbors[cell]
-
-    result = bfs(get_neighbors, (0, 1), (1, 1))
-
-    if result is None:
-        print("Çıkışa ulaşılamadı.")
-    else:
-        print(f"Çözüm yolu: {result}")

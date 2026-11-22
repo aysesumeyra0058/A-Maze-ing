@@ -1,6 +1,3 @@
-import sys
-
-
 class MazeConfig:
     """Store validated maze configuration values."""
 
@@ -151,26 +148,3 @@ def parse_config(path: str) -> MazeConfig:
         seed=seed,
         output_file=output_file,
     )
-
-
-if __name__ == "__main__":
-    try:
-        # Require exactly one config file argument
-        if len(sys.argv) != 2:
-            raise ValueError(
-                "Usage: python3 config_parser.py <config_file>"
-            )
-
-        # Parse the config file provided by the user
-        config = parse_config(sys.argv[1])
-
-        print(f"Width: {config.width}, height: {config.height}")
-        print(f"Entry: {config.entry}")
-        print(f"Exit: {config.exit_position}")
-        print(f"Perfect: {config.perfect}")
-        print(f"Seed: {config.seed}")
-        print(f"Output file: {config.output_file}")
-
-    # Handle invalid config values and file access errors -> OSError
-    except (ValueError, OSError) as error:
-        print(f"Error: {error}")
