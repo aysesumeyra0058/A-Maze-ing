@@ -18,3 +18,6 @@ authors = [
 
 [tool.setuptools]
 packages = ["mazegen"]
+
+[tool.setuptools.package-data]
+mazegen = ["USAGE.md"]
