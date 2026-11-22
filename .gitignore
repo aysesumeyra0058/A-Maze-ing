@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Mypy cache
+.mypy_cache/
+
+# Virtual environment
+.venv/
+
+# Generated build files
+build/
+dist/
+*.egg-info/
+
+# Generated maze output
+maze.txt

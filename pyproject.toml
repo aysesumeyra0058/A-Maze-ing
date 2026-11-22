@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen"
+version = "1.0.0"
+description = "A reusable maze generator and shortest-path solver"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE.md"]
+
+authors = [
+    {name = "aykesim"},
+    {name = "dilkayma"},
+]
+
+[tool.setuptools]
+packages = ["mazegen"]
