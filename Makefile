@@ -1,33 +1,39 @@
-PYTHON = python3
-MAIN = a_maze_ing.py
-CONFIG = config.txt
+PYTHON  := python3
+CONFIG  := config.txt
+MAIN    := a_maze_ing.py
 
-MYPY_FLAGS = --warn-return-any --warn-unused-ignores \
-	--ignore-missing-imports --disallow-untyped-defs \
-	--check-untyped-defs
+MYPY_FLAGS := --warn-return-any --warn-unused-ignores \
+              --ignore-missing-imports --disallow-untyped-defs \
+              --check-untyped-defs
 
-.PHONY: install run debug clean lint build
+.PHONY: all install run debug lint lint-strict build clean
+
+all: run
 
 install:
+	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install flake8 mypy build
 
 run:
-	$(PYTHON) $(MAIN) "$(CONFIG)"
+	$(PYTHON) $(MAIN) $(CONFIG)
 
 debug:
-	$(PYTHON) -m pdb $(MAIN) "$(CONFIG)"
+	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
-clean:
-	find . -type d \( -name "__pycache__" \
-		-o -name ".mypy_cache" \
-		-o -name ".pytest_cache" \
-		-o -name "*.egg-info" \) -prune -exec rm -rf {} +
-	rm -rf build
-
-lint: clean
+lint:
 	$(PYTHON) -m flake8 .
 	$(PYTHON) -m mypy . $(MYPY_FLAGS)
 
-build: clean
+lint-strict:
+	$(PYTHON) -m flake8 .
+	$(PYTHON) -m mypy . --strict
+
+build:
 	$(PYTHON) -m build
-	cp dist/mazegen-*.whl dist/mazegen-*.tar.gz .
+
+clean:
+	rm -rf __pycache__ mazegen/__pycache__
+	rm -rf .mypy_cache .pytest_cache
+	rm -rf build dist *.egg-info
+	rm -rf maze.txt
+	find . -type f -name "*.pyc" -delete
