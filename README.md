@@ -4,222 +4,214 @@
 
 ## Description
 
-**A-Maze-ing** is a maze generator written in Python 3.10+. The program reads a plain-text configuration file, generates a random (and reproducible, thanks to a seed) maze, writes it to a file using a hexadecimal wall encoding, and displays it in the terminal with an interactive menu.
+A-Maze-ing generates a maze from a configuration file, finds a shortest path with BFS, saves the result using hexadecimal wall encoding, and displays it in the terminal.
 
-Main features:
-
-- Random maze generation with seed-based reproducibility.
-- Two modes, selected with the `PERFECT` key:
-  - `PERFECT=True`: a perfect maze (exactly one path between entry and exit, no loops).
-  - `PERFECT=False` (default): a playable, Pac-Man-like board (full connectivity, open corners and centre, at least two independent routes, very few dead-ends).
-- A visible **"42"** pattern made of fully closed cells (omitted with a console error message if the maze is too small).
-- Shortest path computation from entry to exit using **BFS**.
-- Output file with the hexadecimal wall representation, the entry, the exit and the shortest path (`N`, `E`, `S`, `W`).
-- Terminal ASCII rendering with an interactive menu.
-- A reusable maze generator packaged as a `mazegen-*` pip package.
+It supports reproducible generation with a seed, perfect and non-perfect modes, a blue "42" pattern, and an interactive menu. No bonus features are claimed.
 
 ## Instructions
 
-### Requirements
+### Requirements and execution
 
-- Python 3.10 or later
-- `pip` (a virtual environment is recommended)
+Python 3.10 or later is required. The application uses only the Python standard library. A terminal supporting ANSI colours and the Unicode block character `█` is needed for the intended display.
 
-### Makefile rules
+On Linux/macOS:
 
-| Rule          | Description                                                           |
-|---------------|-----------------------------------------------------------------------|
-| `make install`| Install the project dependencies                                      |
-| `make run`    | Run `a_maze_ing.py` with the default `config.txt`                     |
-| `make debug`  | Run the main script with Python's debugger (`pdb`)                    |
-| `make clean`  | Remove `__pycache__`, `.mypy_cache` and other temporary files         |
-| `make lint`   | Run `flake8 .` and `mypy .` with the mandatory flags                  |
-| `make lint-strict` | Run `flake8 .` and `mypy . --strict` (optional)                  |
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+make install
+make run
+```
 
-### Execution
+The direct command is:
 
 ```bash
 python3 a_maze_ing.py config.txt
 ```
 
-`config.txt` is the only argument. A default configuration file is provided in the repository.
+On Windows, use `py a_maze_ing.py config.txt`. Exactly one configuration file argument is required.
 
-### Interactive menu
+### Makefile
 
-While the program is running, the following actions are available:
+| Rule | Purpose |
+| --- | --- |
+| `install` | Install flake8, mypy and build. |
+| `run` | Run the application with `config.txt`. |
+| `debug` | Run the application with the Python debugger, pdb. |
+| `clean` | Remove Python caches, package metadata directories and `build/`. |
+| `lint` | Run flake8 and mypy with the subject's required flags. |
+| `build` | Build both distribution formats and copy them to the repository root. |
 
-1. **Re-generate** a new maze and display it.
-2. **Show / Hide** the shortest path from entry to exit.
-3. **Change the wall colours.**
-4. **Quit.**
+A different configuration can be selected with `make run CONFIG=other_config.txt`.
 
-### Building the reusable package
+### Interactive commands
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install build
-python3 -m build
-```
+Type a command and press Enter:
 
-This re-creates the `mazegen-*.tar.gz` and `mazegen-*.whl` files. To install the generated package in another environment:
+| Command | Action |
+| --- | --- |
+| `s` | Show or hide the shortest path. |
+| `c` | Cycle through wall colours. |
+| `r` | Generate a new maze with a fresh seed, solve it and update the output file. |
+| `q` | Quit. |
 
-```bash
-pip install mazegen-*.whl
-```
+The display uses `S` for entry, `E` for exit, dots for the solution, blocks for walls and empty spaces for passages. The "42" pattern stays blue when other wall colours change. Regeneration retains the size, endpoints and mode loaded at startup.
 
 ## Configuration file
 
-The configuration file contains one `KEY=VALUE` pair per line. Lines starting with `#` are comments and are ignored. Empty lines are ignored.
+Use one `KEY=VALUE` pair per line. Empty lines and lines whose first non-whitespace character is `#` are ignored. Leading and trailing whitespace is removed. Keys are uppercase; `PERFECT` accepts exactly `True` or `False`.
 
-| Key           | Description                         | Example            |
-|---------------|-------------------------------------|--------------------|
-| `WIDTH`       | Maze width (number of cells)        | `WIDTH=20`         |
-| `HEIGHT`      | Maze height (number of cells)       | `HEIGHT=15`        |
-| `ENTRY`       | Entry coordinates `x,y`             | `ENTRY=0,0`        |
-| `EXIT`        | Exit coordinates `x,y`              | `EXIT=19,14`       |
-| `OUTPUT_FILE` | Output filename                     | `OUTPUT_FILE=maze.txt` |
-| `PERFECT`     | Perfect maze or playable board      | `PERFECT=True`     |
-
-Optional keys:
-
-| Key    | Description                                        | Example     |
-|--------|----------------------------------------------------|-------------|
-| `SEED` | Seed used for reproducible generation              | `SEED=42`   |
-
-Example:
-
-```
-# Default configuration
+```text
 WIDTH=20
 HEIGHT=15
 ENTRY=0,0
 EXIT=19,14
 OUTPUT_FILE=maze.txt
 PERFECT=True
+SEED=42
 ```
 
-Rules and error handling:
+| Key | Meaning and constraints |
+| --- | --- |
+| `WIDTH` | Positive integer: number of columns. |
+| `HEIGHT` | Positive integer: number of rows. |
+| `ENTRY` | Two integers in `x,y` format, inside the maze. |
+| `EXIT` | Two integers in `x,y` format, inside the maze and different from entry. |
+| `OUTPUT_FILE` | Non-empty output file path; its parent directory must exist. |
+| `PERFECT` | `True` for a perfect maze; `False` for a non-perfect board. Required. |
+| `SEED` | Optional integer. If omitted, a seed is selected and printed. |
 
-- All mandatory keys must be present.
-- `WIDTH` and `HEIGHT` must be positive integers.
-- `ENTRY` and `EXIT` must be two comma-separated integers, inside the maze bounds, and different from each other.
-- `PERFECT` must be a boolean (`True` / `False`).
-- Any invalid configuration (missing key, line without `=`, letters instead of numbers, wrong tuple format, file not found, ...) produces a clear error message and a clean exit, never a crash.
+All keys except `SEED` are mandatory. Unknown or duplicate keys, missing values, malformed lines, invalid numbers or coordinates, and file access errors are reported. Impossible generation parameters produce an error message. With identical parameters and seed, generation is reproducible.
+
+Coordinates are `(x, y)` and grid access is `grid[y][x]`; increasing `y` moves south.
+
+## Algorithms and maze rules
+
+### Generation: iterative randomized DFS
+
+The generator starts with all walls closed. It uses a stack and opens a passage to a randomly selected unvisited neighbour. When no unvisited neighbour remains, it backtracks. This builds a connected, cycle-free maze, excluding the fully closed "42" cells.
+
+We chose DFS because it is straightforward to understand, creates a spanning tree for perfect mode, and works with a seeded random generator. The iterative implementation avoids recursive call-depth limits.
+
+For non-perfect mode, the generator removes additional walls to reduce dead-ends and create at least two independent cycles. It accepts at most two dead-ends and keeps the four corners and centre available as corridors. Before opening an extra wall, it checks that the change will not create a completely open 3×3 area. Generation uses bounded retries and reports failure if the requested constraints cannot be met.
+
+Shared walls are updated on both cells and exterior walls remain closed. The "42" uses a 7×5 pattern of fully closed cells; its placement preserves connectivity and protected cells. If no suitable placement is available, the program prints a warning and continues without the pattern.
+
+### Solution: BFS
+
+Breadth-first search explores accessible neighbours using a FIFO queue. A visited set prevents repeated discovery, and a predecessor dictionary reconstructs the route. Since each move has equal cost, BFS returns a shortest path. That same path is used for display and output.
 
 ## Output file format
 
-Each cell is written as one hexadecimal digit encoding its closed walls:
+The file contains `HEIGHT` rows of `WIDTH` hexadecimal digits, an empty line, entry coordinates, exit coordinates, and the shortest path as `N`, `E`, `S`, `W` letters. Each line ends with a newline.
 
-| Bit       | Direction |
-|-----------|-----------|
-| 0 (LSB)   | North     |
-| 1         | East      |
-| 2         | South     |
-| 3         | West      |
+Each digit represents the closed walls of one cell:
 
-A bit set to `1` means the wall is closed. Cells are written row by row, one row per line. After an empty line come three lines: the entry coordinates, the exit coordinates, and the shortest path from entry to exit using `N`, `E`, `S`, `W`. All lines end with `\n`.
+| Direction | Bit | Value |
+| --- | --- | --- |
+| North | 0 | 1 |
+| East | 1 | 2 |
+| South | 2 | 4 |
+| West | 3 | 8 |
 
-## Maze generation algorithm
-
-<!-- TODO (dilkayma): fill in the algorithm actually used -->
-**Algorithm:** *(e.g. Recursive Backtracker / DFS, Prim, Kruskal ... — to be completed)*
-
-**Why this algorithm:** *(to be completed: simplicity, produces perfect mazes as spanning trees, easy to extend to a braided / loop-based playable board by removing walls, easy seed-based reproducibility, ...)*
-
-**Shortest path:** the solution is computed with a **Breadth-First Search (BFS)**, which guarantees the shortest path in an unweighted grid. The same path is used for the output file and for the terminal display.
+A set bit means a closed wall; a cleared bit means an open passage. For example, `A` (10) means east and west are closed; `F` (15) means all four walls are closed. The hexadecimal digit encodes walls, not the cell's position.
 
 ## Reusable module
 
-The maze generation logic lives in a single class (`MazeGenerator`) inside a standalone module, independent from the display and the configuration parsing. It is packaged as `mazegen-*` (`.whl` / `.tar.gz`) at the root of the repository.
+The public class is `mazegen.MazeGenerator`. The `mazegen/` package contains generation and solving logic and does not depend on configuration parsing or terminal rendering.
 
-### Basic example
+### Build and install
+
+From the repository root, in a build environment:
+
+```bash
+python3 -m pip install build
+make build
+```
+
+This creates `dist/mazegen-1.0.0.tar.gz` and `dist/mazegen-1.0.0-py3-none-any.whl`, and copies both files to the repository root. The source archive contains the code and build configuration; the wheel is ready for installation.
+
+For a separate installation test, from the repository root:
+
+```bash
+python3 -m venv ../mazegen-test-env
+../mazegen-test-env/bin/python -m pip install ./mazegen-1.0.0-py3-none-any.whl
+../mazegen-test-env/bin/python -I -c "from mazegen import MazeGenerator; print('Import OK')"
+```
+
+On Windows, the environment's interpreter is `..\mazegen-test-env\Scripts\python.exe`. To test the complete application against the installed package, copy `a_maze_ing.py`, `config_parser.py`, `renderer.py`, `output_writer.py` and `config.txt` to another directory without the source `mazegen/` folder, then run the application there using the test environment's interpreter.
+
+### Basic usage
 
 ```python
 from mazegen import MazeGenerator
+from mazegen.solver import path_to_directions
 
-# Instantiate with custom parameters (size, seed, ...)
-generator = MazeGenerator(width=20, height=15, seed=42)
+maze = MazeGenerator(
+    width=20,
+    height=15,
+    perfect=True,
+    seed=42,
+    entry=(0, 0),
+    exit=(19, 14),
+)
 
-# Generate the maze
-generator.generate()
+# Construction generates the maze; no separate generate() call is needed.
+grid = maze.get_grid()
+path = maze.solve((0, 0), (19, 14))
 
-# Access the generated structure
-maze = generator.maze            # grid of cells and their walls
-
-# Access a solution (shortest path from entry to exit)
-path = generator.solve()         # e.g. "ESEENE..."
+if path is not None:
+    print(path)
+    print(path_to_directions(path))
 ```
 
-<!-- TODO: adjust the import path, constructor arguments and attribute / method names to match the real API -->
+`width` and `height` are required. Constructor defaults are `perfect=False`, `seed=None`, `entry=None` and `exit=None`. Providing entry and exit protects them from the "42" pattern.
 
-### Custom parameters
+| Method | Result |
+| --- | --- |
+| `get_grid()` | Independent copy of the integer wall grid. |
+| `get_blocked_cells()` | Copy of the set of "42" cell coordinates. |
+| `get_seed()` | Actual seed used for generation. |
+| `neighbors(cell)` | Accessible neighbours in north, east, south, west order. |
+| `solve(entry, exit_position)` | Shortest coordinate path including both endpoints, or `None` if unreachable. |
 
-- `width`, `height`: size of the maze.
-- `seed`: same seed gives the same maze.
-- entry / exit coordinates and the `perfect` flag can also be passed to the generator.
-
-### Accessing the result
-
-- The maze structure is available as a grid of cells; each cell knows which of its four walls (N, E, S, W) are closed. This format is not necessarily the same as the hexadecimal output file.
-- The shortest path is available as a sequence of `N`, `E`, `S`, `W` moves.
-
-### What is reusable
-
-- The generator class (generation, seed handling, perfect / non-perfect modes, "42" pattern, solution).
-- It has no dependency on the terminal rendering or on the configuration file, so it can be imported in any future project.
-- The code is released under the license described in `LICENSE.md`.
+`path_to_directions(path)` converts the coordinate path into a direction string. Reuse and distribution are permitted under the MIT license in `LICENSE.md`.
 
 ## Team and project management
 
 ### Roles
 
-- **dilkayma**: maze generator (generation logic and structure, reusable module).
-- **aykesim**: BFS shortest-path solver, output file creation, terminal rendering and interactive menu, and other related parts (configuration parsing, error handling, ...).
+- **dilkayma:** maze generation, wall structure, pattern placement and generation constraints.
+- **aykesim:** configuration parsing, BFS, output writing, terminal rendering and interactive application flow, testing.
+- **Shared:** interface decisions, integration, packaging and documentation review.
 
-<!-- TODO (aykesim): add anything else you handled -->
+### Initial plan and changes
 
-### Planning
+We planned to separate generation from input, solving and display. We agreed on `(x, y)` coordinates and integer wall masks so both parts could be developed independently. The solver was first tested with manually defined neighbours, then connected to the generator's neighbour method. Display work followed integration. Edge-case testing led to refinements in pattern placement and error handling; packaging was completed after the main application worked.
 
-<!-- TODO: write your initial planning and how it evolved, e.g. week-by-week -->
-- **Anticipated planning:** *(to be completed)*
-- **How it evolved:** *(to be completed)*
+### What worked well and what could improve
 
-### What worked well / what could be improved
+A shared coordinate and wall convention made integration easier. Separating the parser, generator, solver, writer and renderer also helped us study and test each part. We could improve the process by testing package installation earlier and updating documentation alongside API changes.
 
-<!-- TODO: complete honestly with your own experience -->
-- **Worked well:** *(e.g. clear split between generator and display/solver, early agreement on the maze data structure)*
-- **Could be improved:** *(to be completed)*
+### Tools
 
-### Tools used
-
-- Python 3.10+, `flake8`, `mypy`, `pytest` / `unittest`
-- Git and a shared repository
-- `venv`, `build` (package building)
-- `maze_analyzer.py` / `output_validator.py` (provided with the subject) to validate the output file
-- AI assistant (see Resources)
+Python, VS Code, Git/GitHub, venv, pip, setuptools, build, flake8, mypy, the supplied `maze_analyzer.py`, and an AI assistant were used during development and review.
 
 ## Resources
 
-### References
+- [Python documentation](https://docs.python.org/3/): random, collections, typing and file handling.
+- [Maze generation algorithms](https://en.wikipedia.org/wiki/Maze_generation_algorithm).
+- [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search).
+- [Python Packaging User Guide](https://packaging.python.org/).
+- [PEP 257](https://peps.python.org/pep-0257/): docstrings.
 
-- Wikipedia, *Maze generation algorithm*: https://en.wikipedia.org/wiki/Maze_generation_algorithm
-- Wikipedia, *Breadth-first search*: https://en.wikipedia.org/wiki/Breadth-first_search
-- Jamis Buck, *Mazes for Programmers* and his maze algorithm articles: https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap
-- Python documentation: https://docs.python.org/3/ (`random`, `typing`, `collections`)
-- PEP 8, PEP 257, flake8 and mypy documentation
-- Python Packaging User Guide: https://packaging.python.org/
-
-### How AI was used
+### AI use
 
 AI was used as a **guide and learning support**, not as a replacement for our own work. We only kept what we understood and could explain.
 
 - **Understanding the subject:** through interactive question-and-answer exchanges, we used AI to better understand what the module and the subject expected from us (output format, validity rules, reusable package requirements).
 - **Testing phase:** AI helped us to define test ideas and edge cases (invalid configurations, small mazes, seed reproducibility, wall coherence between neighbouring cells), and to run checks. We then ran, reviewed and discussed the results together.
-- **README:** AI helped us to structure this document and to make sure every requirement of the subject was covered. The content was reviewed and completed by us.
-
-All AI suggestions were tested, reviewed and discussed between both team members before being used.
 
 ## License
 
-See [`LICENSE.md`](LICENSE.md).
+MIT — see [LICENSE.md](LICENSE.md).
