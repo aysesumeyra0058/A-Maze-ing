@@ -22,7 +22,7 @@ class MazeGenerator:
         if seed is not None and type(seed) is not int:
             raise ValueError("seed must be an integer or None.")
         if entry is not None:
-            valid_entry = tuple in type(entry).__mro__
+            valid_entry = type(entry) is tuple
             if valid_entry and len(entry) != 2:
                 valid_entry = False
             if valid_entry:
@@ -38,7 +38,7 @@ class MazeGenerator:
                 raise ValueError(
                     "entry must be an (x, y) pair inside the maze.")
         if exit is not None:
-            valid_exit = tuple in type(exit).__mro__
+            valid_exit = type(exit) is tuple
             if valid_exit and len(exit) != 2:
                 valid_exit = False
             if valid_exit:
