@@ -52,9 +52,6 @@ if __name__ == "__main__":
             )
 
             print(f"Maze saved to: {config.output_file}")
-            # Display the maze and keep the 42 pattern filled
-            # Display the maze with its entry and exit
-            # Keep the current solution visibility
 
             show_solution = True
             # Available wall colors: white, green, cyan, magenta
