@@ -1,5 +1,3 @@
-"""A reusable maze generator module."""
-
 from .generator import MazeGenerator
 
 __version__ = "1.0.0"
