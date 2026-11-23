@@ -65,18 +65,30 @@ class WallMixin:
         ax, ay = cell_a
         bx, by = cell_b
 
-        min_y = ay if ay > by else by
+        if ay > by:
+            min_y = ay
+        else:
+            min_y = by
         min_y -= 2
         if min_y < 0:
             min_y = 0
-        max_y = ay if ay < by else by
+        if ay < by:
+            max_y = ay
+        else:
+            max_y = by
         if max_y > self.height - 3:
             max_y = self.height - 3
-        min_x = ax if ax > bx else bx
+        if ax > bx:
+            min_x = ax
+        else:
+            min_x = bx
         min_x -= 2
         if min_x < 0:
             min_x = 0
-        max_x = ax if ax < bx else bx
+        if ax < bx:
+            max_x = ax
+        else:
+            max_x = bx
         if max_x > self.width - 3:
             max_x = self.width - 3
 
@@ -86,21 +98,17 @@ class WallMixin:
 
         for top_y in range(min_y, max_y + 1):
             for top_x in range(min_x, max_x + 1):
-                inner_walls = [
-
-                    ((top_x + col, top_y + row),
-                     (top_x + col + 1, top_y + row),
-                     east_bit)
-                    for row in range(3)
-                    for col in range(2)
-                ] + [
-
-                    ((top_x + col, top_y + row),
-                     (top_x + col, top_y + row + 1),
-                     south_bit)
-                    for row in range(2)
-                    for col in range(3)
-                ]
+                inner_walls: list[Tuple[Cell, Cell, int]] = []
+                for row in range(3):
+                    for col in range(2):
+                        first = (top_x + col, top_y + row)
+                        second = (top_x + col + 1, top_y + row)
+                        inner_walls.append((first, second, east_bit))
+                for row in range(2):
+                    for col in range(3):
+                        first = (top_x + col, top_y + row)
+                        second = (top_x + col, top_y + row + 1)
+                        inner_walls.append((first, second, south_bit))
 
                 # Check inner walls.
                 all_open = True

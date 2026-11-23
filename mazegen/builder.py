@@ -19,7 +19,10 @@ class MazeBuilder(PatternMixin):
         self.width, self.height, self.perfect = width, height, perfect
         self._rng = rng
         # Close all walls.
-        self.grid: List[List[int]] = [[15] * width for _ in range(height)]
+        self.grid: List[List[int]] = []
+        for _ in range(height):
+            row = [15] * width
+            self.grid.append(row)
         self.blocked_cells: Set[Cell] = set()
         self._reserved = set(reserved or ())
         if not perfect:
@@ -50,7 +53,10 @@ class MazeBuilder(PatternMixin):
 
         for cells in candidates:
             for _ in range(4):
-                self.grid = [[15] * width for _ in range(height)]
+                self.grid = []
+                for _ in range(height):
+                    row = [15] * width
+                    self.grid.append(row)
                 self.blocked_cells = cells
                 self._generate_perfect_maze()
                 try:
@@ -107,8 +113,11 @@ class MazeBuilder(PatternMixin):
     def _generate_non_perfect_maze(self) -> None:
         """Add paths and loops."""
 
-        cells = [(x, y) for y in range(self.height) for x in range(self.width)
-                 if (x, y) not in self.blocked_cells]
+        cells: List[Cell] = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) not in self.blocked_cells:
+                    cells.append((x, y))
         self._rng.shuffle(cells)
         # Count new loops.
         loops = 0
@@ -120,17 +129,26 @@ class MazeBuilder(PatternMixin):
                     closed_walls += 1
             if closed_walls != 3:
                 continue
-            choices = [n for n, bit in self._neighbour(cell)
-                       if n not in self.blocked_cells and self.grid[y][x] & bit
-                       and not self._would_open_square(cell, n)]
+            choices: List[Cell] = []
+            for neighbor, bit in self._neighbour(cell):
+                if neighbor in self.blocked_cells:
+                    continue
+                if not (self.grid[y][x] & bit):
+                    continue
+                if self._would_open_square(cell, neighbor):
+                    continue
+                choices.append(neighbor)
             if choices:
                 self._knock_down_wall(cell, self._rng.choice(choices))
                 loops += 1
         if loops < 2:
-            edges = [(cell, n) for cell in cells
-                     for n, bit in self._neighbour(cell)
-                     if n not in self.blocked_cells
-                     and self.grid[cell[1]][cell[0]] & bit]
+            edges: List[Tuple[Cell, Cell]] = []
+            for cell in cells:
+                for neighbor, bit in self._neighbour(cell):
+                    if neighbor in self.blocked_cells:
+                        continue
+                    if self.grid[cell[1]][cell[0]] & bit:
+                        edges.append((cell, neighbor))
             self._rng.shuffle(edges)
             for a, b in edges:
                 if loops >= 2:
